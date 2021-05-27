@@ -11,7 +11,9 @@ export function build_export(itemlist) {
 
 /* Invoke download function for the content. */
 export function download(body) {
-    let filename = "diary.txt";
+    let d = new Date();
+    let iso = d.toISOString().substr(0,10);
+    let filename = `diary-export-${iso}.txt`;
 
     let element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(body));
