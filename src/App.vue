@@ -1,18 +1,21 @@
 <template>
   <header>
+  <div class="navi">
       <span>Diary {{title}}</span>
       <input type="text" v-model="search" autocomplete="off" />
-      <a href="#" @click="onDownload">Download</a>
-      <a href="#" @click="onAdd">New</a>
-  </header>
-
-  <div class="taglist">
+      <span>
+          <a href="#" @click="onSettingsOpen">&#9776;</a>
+          <a href="#" @click="onAdd">New</a>
+      </span>
+  </div>
+  <div class="taglist"  v-if="mode!='settings'">
   <span v-for="(item, index) in tags" :key="index" @click="onSelectTag(item)"
         :style="{ backgroundColor: item.color }"
         :class="{ active: tag_selected == item.name }">
     {{item.name}}
   </span>
   </div>
+  </header>
 
   <main>
   <div class="items" v-if="mode=='list'">
@@ -25,14 +28,15 @@
         {{item.text}}
       </div>
   </div>
+
   <div class="edit" v-if="mode=='edit'">
-    <textarea v-model="body"></textarea>
+    <textarea ref="textbody" v-model="body"></textarea>
 
     <div class="buttonrow">
         <span>
-        <button @click="onDelete">Delete</button>
+        <button @click="onDelete" v-if="note_selected.id">Delete</button>
         <button @click="onCancelEdit">Cancel</button>
-        <button @click="onSave">Save</button>
+        <button @click="onSave" class="action">Save</button>
         </span>
         <span>
         <button @click="delta-=1">-</button>
@@ -40,6 +44,22 @@
         {{delta}}
         </span>
     </div>
+  </div>
+
+  <div class="settings" v-if="mode=='settings'">
+      <h2>Settings</h2>
+      <h3>Tags</h3>
+      <p>{{tags}}</p>
+
+      <input type="color" />
+
+      <h3>Export</h3>
+      <button @click="onDownload">Export notes</button>
+
+      <hr/>
+
+      <button @click="onSettingsCancel">Cancel</button>
+      <button @click="onSettingsSave" class="action">Save</button>
   </div>
 
   </main>
@@ -107,6 +127,11 @@ export default {
             t.delta = 0;
             t.tag_selected = '';
             t.mode = 'edit';
+            t.clearSelection();
+
+            setTimeout(() => {
+                t.$refs.textbody.focus();
+            }, 50);
         },
         onEdit(note) {
             let t = this;
@@ -161,7 +186,19 @@ export default {
         },
         clearSelection() {
             this.note_selected = {id:0,text:''};
-        }
+        },
+        onSettingsOpen() {
+            let t = this;
+            t.mode = 'settings';
+        },
+        onSettingsCancel() {
+            let t = this;
+            t.mode = 'list';
+        },
+        onSettingsSave() {
+            let t = this;
+            t.mode = 'list';
+        },
     }
 }
 </script>
@@ -170,6 +207,7 @@ export default {
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 body {
     font-size: 15px;
@@ -185,19 +223,33 @@ a {
 }
 
 header {
+    position: fixed;
+    width: 100%;
     background: #55f;
+    font-weight: bold;
+}
+header .navi {
     padding: 10px;
 	display: flex;
     justify-content: space-between;
     color: #fff;
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 18px;
     user-select: none;
 }
+
 header input {
     outline: none;
     border: none;
-    padding: 4px 6px;
+    width: 30%;
+    padding: 2px 6px;
+}
+header a {
+    margin-left: 20px;
+    color: #fff;
+}
+
+main {
+    padding-top: 78px;
 }
 
 .item {
@@ -211,46 +263,66 @@ header input {
     white-space: pre-line;
     border: 2px solid #000;
 }
-
 .item span {
-    color: #555;
+    color: #22a;
     float: right;
     font-size: 70%;
 }
 .item a {
     color: #33f;
     float: right;
-    margin-right: 10px;
+    clear: both;
 }
 
 .taglist {
-    font-weight: bold;
     /*border-bottom: 1px solid #555;*/
-    background: #eef;
+    background: #fff;
     padding: 5px;
     padding-left: 0;
-    margin: 3px 0px;
     user-select: none;
+    overflow-x: auto;
 }
 .taglist span {
-    padding: 6px 6px;
+    padding: 3px 6px;
 }
 .taglist span.active {
     border: 2px solid #000;
 }
 
 .edit textarea {
-    width: 100%;
-    height: 200px;
+    width: 98%;
+    height: 300px;
+    padding: 5px;
+    margin: 1%;
+    font-size: 110%;
+    border: 0;
 }
-.edit button {
+button {
     margin-right: 15px;
     padding: 4px 10px;
+}
+button.action {
+    background: #b6ceff;
+    border: 1px solid blue;
 }
 
 .buttonrow {
 	display: flex;
     justify-content: space-between;
+}
+
+.settings {
+    xtext-align: center;
+}
+
+h3 {
+    margin-top: 24px;
+}
+
+hr {
+    margin: 50px 0 10px;
+    border: 0;
+    border-bottom: 1px dashed #aaa;
 }
 
 @media screen and (min-width: 1000px) {
@@ -259,6 +331,10 @@ header input {
         width: 50%;
         margin: 0 auto;
     }
+    header {
+        width: 50%;
+    }
+
 }
 
 </style>
