@@ -1,5 +1,5 @@
 
-/* API to IndexedDB, basic CRUD of notes. */
+/* API to IndexedDB, basic CRUD of notes. Keyvalues to localstorage. */
 
 import { openDB } from 'idb';
 
@@ -24,6 +24,7 @@ export async function open_db() {
                 autoIncrement: true,
               });
               store.createIndex('created', 'created');
+              insert_note("tag1", "Welcome to Tomi's notes app! This is your first note.");
               break;
             case 1:
               // 2nd schema...
@@ -67,10 +68,11 @@ export async function query_notes(tag, search) {
     return items;
 }
 
-export async function insert_note(tag, text) {
+export async function insert_note(tag, text, delta_days) {
 
     const start = parseInt(Date.now()/1000);
     let item = {"text":text, "created":start, "tag":tag};
+    item.created += add_delta_days(delta_days);
 
     await db_.add(STORE_NAME, item);
 }
@@ -83,12 +85,7 @@ export async function update_note(id, tag, text, delta_days) {
 
     item.tag = tag;
     item.text = text;
-    //delete item.id;
-
-    if (delta_days) {
-        const SECS_DAY = 60*60*24;
-        item.created += delta_days * SECS_DAY;
-    }
+    item.created += add_delta_days(delta_days);
 
     console.debug("update", item, id);
     await db_.put(STORE_NAME, item);
@@ -99,5 +96,35 @@ export async function delete_note(key) {
     console.debug("delete", key);
 
     await db_.delete(STORE_NAME, key);
+}
+
+function add_delta_days(days) {
+    days = days || 0;
+    const SECS_DAY = 60*60*24;
+    return days * SECS_DAY;
+}
+
+export function get_keyval(key, defval) {
+    return localStorage.getItem(key) || defval;
+}
+
+export function get_keyval_list(key, defvalue) {
+    let val = localStorage.getItem(key);
+    if (val) {
+        let list = val.split(",");
+        list = list.map(x => x.trim());
+        return list;
+    } else {
+        return defvalue;
+    }
+}
+
+export function save_keyval(key, val) {
+    localStorage.setItem(key, val);
+}
+
+export function save_keyval_list(key, list) {
+    let val = list.join(", ");
+    localStorage.setItem(key, val);
 }
 

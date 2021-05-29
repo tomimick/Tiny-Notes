@@ -1,27 +1,27 @@
 <template>
   <header>
   <div class="navi">
-      <span>Diary {{title}}</span>
-      <input type="text" v-model="search" autocomplete="off" />
+      <span @click="onHome">Diary {{title}}</span>
+      <input type="text" v-model="search" autocomplete="off"
+            placeholder="Search" />
       <span>
-          <a href="#" @click="onSettingsOpen">&#9776;</a>
+          <a href="#" @click="onSettingsOpen">&#9881;</a>
           <a href="#" @click="onAdd">New</a>
       </span>
   </div>
   <div class="taglist"  v-if="mode!='settings'">
   <span v-for="(item, index) in tags" :key="index" @click="onSelectTag(item)"
-        :style="{ backgroundColor: item.color }"
-        :class="{ active: tag_selected == item.name }">
-    {{item.name}}
+        :class="[item, { active: tag_selected == item }]">
+    {{item}}
   </span>
   </div>
   </header>
 
   <main>
   <div class="items" v-if="mode=='list'">
-      <div v-for="(item, index) in items" :key="index" class="item"
-        :style="{ backgroundColor: get_tag_color(item.tag)}"
-        :class="{ open: item.id == note_selected.id }" @click="onToggle(item)">
+      <div v-for="(item, index) in items" :key="index"
+        :class="['item', item.tag, {open: item.id == note_selected.id}]"
+        @click="onToggle(item)">
          <span>{{item.tag}} {{epoch_to_text(item.created)}}</span>
          <a href="#" @click.stop="onEdit(item)"
             v-show="item.id == note_selected.id">Edit</a>
@@ -29,32 +29,39 @@
       </div>
   </div>
 
-  <div class="edit" v-if="mode=='edit'">
+  <div class="editview" v-if="mode=='edit'">
     <textarea ref="textbody" v-model="body"></textarea>
 
     <div class="buttonrow">
         <span>
-        <button @click="onDelete" v-if="note_selected.id">Delete</button>
+        <button @click="onDelete" v-if="note_selected.id" class="del">Delete</button>
         <button @click="onCancelEdit">Cancel</button>
         <button @click="onSave" class="action">Save</button>
         </span>
-        <span>
+        <span class="daydelta">
+        <span class="daydelta" v-show="delta">
+        Day delta {{delta}}
+        </span>
         <button @click="delta-=1">-</button>
         <button @click="delta+=1">+</button>
-        {{delta}}
         </span>
     </div>
   </div>
 
-  <div class="settings" v-if="mode=='settings'">
+  <div class="settingsview" v-if="mode=='settings'">
       <h2>Settings</h2>
       <h3>Tags</h3>
-      <p>{{tags}}</p>
+      <p><input type="text" v-model="edit_taglist"/></p>
 
-      <input type="color" />
+      <h3>Styling</h3>
+      <p>Custom CSS, including tag colors.</p>
+      <textarea v-model="edit_style"></textarea>
 
-      <h3>Export</h3>
-      <button @click="onDownload">Export notes</button>
+      Add new tag style <input type="color" @change="onAddColor" />
+
+      <h3>Data transfer</h3>
+      <button @click="onDownload">Export</button>
+      <button @click="onImport">Import</button>
 
       <hr/>
 
@@ -69,8 +76,18 @@
 
 <script>
 import ReloadPrompt from './ReloadPrompt.vue'
-import {open_db, insert_note, update_note, query_notes, delete_note} from './db.js'
+import {open_db, insert_note, update_note, query_notes, delete_note,
+    get_keyval, get_keyval_list, save_keyval} from './db.js'
 import {download, build_export, epoch_to_text} from './util.js'
+
+const default_taglist = ["tag1", "tag2", "tag3"];
+const default_css = `body {
+    font-size: 15px;
+}
+.tagname {
+    background: #ddd;
+}
+`;
 
 
 export default {
@@ -87,11 +104,9 @@ export default {
             tag_selected:'',
             body:'',
             delta:0,
-            tags:[
-                {name:"tag1", color:"#fff"},
-                {name:"tag2", color:"#bdf6a6"},
-                {name:"tag3", color:"#ffb1aa"},
-                ],
+            tags:[],
+            edit_taglist:'',
+            edit_style:'',
         }
     },
     watch: {
@@ -111,21 +126,26 @@ export default {
     },
     methods: {
         epoch_to_text,
-        async reload() {
+        async reload(skipmode) {
             let t = this;
             t.items = await query_notes(t.tag_selected, t.search);
+
+            // read config
+            t.tags = get_keyval_list("taglist", default_taglist);
+            document.getElementById("customstyle").innerHTML = get_keyval("css", default_css);
+
+            if (!skipmode)
+                t.mode = 'list';
         },
-        get_tag_color(tag) {
-            for (let item of this.tags) {
-                if (tag == item.name)
-                    return item.color;
-            }
+        onHome() {
+            let t = this;
+            t.tag_selected = '';
+            t.reload();
         },
         onAdd() {
             let t = this;
             t.body = '';
             t.delta = 0;
-            t.tag_selected = '';
             t.mode = 'edit';
             t.clearSelection();
 
@@ -145,21 +165,20 @@ export default {
             //console.debug("toggle", this.note_selected);
         },
         onSelectTag(tag) {
-            this.tag_selected = (this.tag_selected == tag.name) ? '' : tag.name;
-            this.reload();
+            this.tag_selected = (this.tag_selected == tag) ? '' : tag;
+            this.reload(true);
         },
         async onSave() {
             let t = this;
             //let text = prompt("kerro");
             let text = t.body;
-            let tag = t.tag_selected || 'life';
+            let tag = t.tag_selected || 'tag1';
             if (t.note_selected.id) {
                 await update_note(t.note_selected.id, tag, text, t.delta);
             } else {
-                await insert_note(tag, text);
+                await insert_note(tag, text, t.delta);
             }
             t.reload();
-            t.mode = 'list';
         },
         onCancelEdit() {
             let t = this;
@@ -174,7 +193,6 @@ export default {
                 return;
 
             delete_note(t.note_selected.id);
-            t.mode = 'list';
             t.reload();
         },
         async onDownload() {
@@ -184,12 +202,21 @@ export default {
             download(txt);
 
         },
+        async onImport() {
+            alert("import");
+        },
         clearSelection() {
             this.note_selected = {id:0,text:''};
         },
         onSettingsOpen() {
             let t = this;
-            t.mode = 'settings';
+            const is_list = t.mode == 'list';
+            t.mode = is_list ? 'settings' : 'list';
+            if (is_list) {
+                // opening settings, populate page
+                t.edit_taglist = t.tags.join(", ");
+                t.edit_style = get_keyval("css", default_css);
+            }
         },
         onSettingsCancel() {
             let t = this;
@@ -197,7 +224,19 @@ export default {
         },
         onSettingsSave() {
             let t = this;
-            t.mode = 'list';
+            save_keyval("taglist", t.edit_taglist);
+            save_keyval("css", t.edit_style);
+            t.reload();
+        },
+        onAddColor(e) {
+            let t = this;
+            const val = e.target.value;
+            let style = `
+.tagname {
+    background: ${val};
+}
+`;
+            t.edit_style += style;
         },
     }
 }
@@ -225,7 +264,7 @@ a {
 header {
     position: fixed;
     width: 100%;
-    background: #55f;
+    background: #5f7dff;
     font-weight: bold;
 }
 header .navi {
@@ -249,12 +288,12 @@ header a {
 }
 
 main {
-    padding-top: 78px;
+    padding-top: 85px;
 }
 
 .item {
     padding: 5px;
-    border-bottom: 1px dotted #caa;
+    border-bottom: 1px dashed #777;
     max-height: 40px;
     overflow: hidden;
 }
@@ -276,47 +315,73 @@ main {
 
 .taglist {
     /*border-bottom: 1px solid #555;*/
-    background: #fff;
-    padding: 5px;
-    padding-left: 0;
+    background: #5f7dff;
+    /*padding: 7px;
+    padding-left: 0;*/
     user-select: none;
     overflow-x: auto;
+    white-space: nowrap;
 }
 .taglist span {
-    padding: 3px 6px;
+    padding: 8px 6px;
+    display: inline-block;
 }
 .taglist span.active {
     border: 2px solid #000;
+    padding: 6px 6px;
 }
 
-.edit textarea {
-    width: 98%;
+.editview {
+    margin: 2%;
+}
+
+.editview textarea {
+    width: 100%;
     height: 300px;
     padding: 5px;
-    margin: 1%;
     font-size: 110%;
     border: 0;
 }
 button {
-    margin-right: 15px;
+    margin-right: 10px;
     padding: 4px 10px;
+    border: 1px solid #888;
 }
 button.action {
     background: #b6ceff;
     border: 1px solid blue;
 }
+button.del {
+    background: #ffabab;
+    border: 1px solid red;
+}
+.daydelta button {
+    margin: 0;
+    margin-left: 4px;
+}
+
 
 .buttonrow {
 	display: flex;
     justify-content: space-between;
 }
 
-.settings {
-    xtext-align: center;
+.settingsview {
+    margin: 2%;
+    margin-top: -30px;
+}
+.settingsview textarea {
+    width: 98%;
+    height: 200px;
+    padding: 5px;
+}
+.settingsview input[type=text] {
+    width: 98%;
+    padding: 4px;
 }
 
 h3 {
-    margin-top: 24px;
+    margin-top: 18px;
 }
 
 hr {
