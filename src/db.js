@@ -57,9 +57,9 @@ export async function query_notes(tag, search) {
         //console.log(cursor.key, cursor.value);
         let item = cursor.value;
         if ( (!tag && !search) ||
-             (tag && !search && item.tag.includes(tag))  ||
+             (tag && !search && item.tag && item.tag.includes(tag))  ||
              (search && !tag && item.text.toLowerCase().includes(search)) ||
-             (item.text.toLowerCase().includes(search) && item.tag.includes(tag)) ) {
+             (item.text.toLowerCase().includes(search) && item.tag && item.tag.includes(tag)) ) {
             items.push(item);
         }
 
@@ -96,6 +96,27 @@ export async function delete_note(key) {
     console.debug("delete", key);
 
     await db_.delete(STORE_NAME, key);
+}
+
+// import a json array of items
+export async function import_json(jsondata) {
+    let count = 0;
+
+    for (let item of jsondata) {
+        //console.debug(item);
+        if (!item.text)
+            continue;
+
+        // if no time, set now
+        if (!item.created)
+            item.created = parseInt(Date.now()/1000);
+
+        delete item.id;
+
+        await db_.add(STORE_NAME, item);
+        count += 1;
+    }
+    return count;
 }
 
 function add_delta_days(days) {

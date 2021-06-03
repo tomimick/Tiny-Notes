@@ -61,7 +61,7 @@
 
       <h3>Data transfer</h3>
       <button @click="onDownload">Export</button>
-      <button @click="onImport">Import</button>
+      Import: <input type="file" name="files[]" @change="onImportFile" />
 
       <hr/>
 
@@ -77,7 +77,7 @@
 <script>
 import ReloadPrompt from './ReloadPrompt.vue'
 import {open_db, insert_note, update_note, query_notes, delete_note,
-    get_keyval, get_keyval_list, save_keyval} from './db.js'
+    get_keyval, get_keyval_list, save_keyval, import_json} from './db.js'
 import {download, build_export, epoch_to_text} from './util.js'
 
 const default_taglist = ["tag1", "tag2", "tag3"];
@@ -139,6 +139,7 @@ export default {
         },
         onHome() {
             let t = this;
+            t.search = '';
             t.tag_selected = '';
             t.reload();
         },
@@ -172,7 +173,7 @@ export default {
             let t = this;
             //let text = prompt("kerro");
             let text = t.body;
-            let tag = t.tag_selected || 'tag1';
+            let tag = t.tag_selected || '';
             if (t.note_selected.id) {
                 await update_note(t.note_selected.id, tag, text, t.delta);
             } else {
@@ -201,9 +202,6 @@ export default {
             let txt = build_export(items);
             download(txt);
 
-        },
-        async onImport() {
-            alert("import");
         },
         clearSelection() {
             this.note_selected = {id:0,text:''};
@@ -237,6 +235,36 @@ export default {
 }
 `;
             t.edit_style += style;
+        },
+        async onImportFile(e) {
+            let t = this;
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+              // read the file content
+              reader.onload = async e => {
+                    let body = e.target.result;
+                    let inputjson;
+
+                    try {
+                        inputjson = JSON.parse(body);
+                    } catch {
+                        alert("json format error!");
+                        return;
+                    }
+
+                    let len = inputjson.length;
+                    if (!confirm(`Do you want to import ${len} items?`)) {
+                        alert("Cancelled");
+                        return;
+                    }
+
+                    let count = await import_json(inputjson);
+                    alert(`Imported ${count} notes.`);
+
+                    t.onHome();
+              };
+              reader.readAsText(file);
         },
     }
 }
