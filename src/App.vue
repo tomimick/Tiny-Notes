@@ -60,6 +60,7 @@
       Add new tag style <input type="color" @change="onAddColor" />
 
       <h3>Data transfer</h3>
+      <p>There are {{notecount}} notes in the database.</p>
       <button @click="onDownload">Export</button>
       Import: <input type="file" name="files[]" @change="onImportFile" />
 
@@ -77,7 +78,8 @@
 <script>
 import ReloadPrompt from './ReloadPrompt.vue'
 import {open_db, insert_note, update_note, query_notes, delete_note,
-    get_keyval, get_keyval_list, save_keyval, import_json} from './db.js'
+    get_keyval, get_keyval_list, save_keyval, import_json,
+    get_count} from './db.js'
 import {download, build_export, epoch_to_text} from './util.js'
 
 const default_taglist = ["tag1", "tag2", "tag3"];
@@ -107,6 +109,7 @@ export default {
             tags:[],
             edit_taglist:'',
             edit_style:'',
+            notecount:0,
         }
     },
     watch: {
@@ -198,15 +201,15 @@ export default {
         },
         async onDownload() {
             let t = this;
-            let items = await query_notes();
-            let txt = build_export(items);
+            let items = await query_notes(null, null, 100000);
+            let txt = build_export(items, t.tags, get_keyval("css"));
             download(txt);
 
         },
         clearSelection() {
             this.note_selected = {id:0,text:''};
         },
-        onSettingsOpen() {
+        async onSettingsOpen() {
             let t = this;
             const is_list = t.mode == 'list';
             t.mode = is_list ? 'settings' : 'list';
@@ -214,6 +217,7 @@ export default {
                 // opening settings, populate page
                 t.edit_taglist = t.tags.join(", ");
                 t.edit_style = get_keyval("css", default_css);
+                t.notecount = await get_count();
             }
         },
         onSettingsCancel() {
@@ -372,7 +376,7 @@ main {
 }
 button {
     margin-right: 10px;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border: 1px solid #888;
 }
 button.action {

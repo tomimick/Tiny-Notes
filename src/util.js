@@ -1,11 +1,15 @@
 
 /* Build a json string of all notes. */
-export function build_export(itemlist) {
+export function build_export(itemlist, taglist, css) {
 
     let data = [];
     for (let item of itemlist) {
         data.push(JSON.stringify(item)+"\n");
     }
+    // export config too
+    let config = {"type":"config", "taglist":taglist,"style":css};
+    data.push(JSON.stringify(config)+"\n");
+
     return "["+ data.toString() + "]";
 }
 

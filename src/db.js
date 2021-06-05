@@ -37,14 +37,14 @@ export async function open_db() {
     return db;
 }
 
-export async function query_notes(tag, search) {
+export async function query_notes(tag, search, count) {
 
     if (search)
         search = search.toLowerCase();
 
     console.debug("query", tag, search);
 
-    const MAX = 50;
+    const MAX = count || 200;
     let range = null;
     let direction = "prev";
 
@@ -96,6 +96,12 @@ export async function delete_note(key) {
     console.debug("delete", key);
 
     await db_.delete(STORE_NAME, key);
+}
+
+export async function get_count() {
+
+    let store = await db_.transaction(STORE_NAME, "readonly").store;
+    return await store.count();
 }
 
 // import a json array of items
