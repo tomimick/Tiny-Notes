@@ -22,7 +22,7 @@
       <div v-for="(item, index) in items" :key="index"
         :class="['item', item.tag, {open: item.id == note_selected.id}]"
         @click="onToggle(item)">
-         <span>{{item.tag}} {{epoch_to_text(item.created)}}</span>
+         <span><b>{{item.tag}}</b> {{epoch_to_text(item.created)}}</span>
          <a href="#" @click.stop="onEdit(item)"
             v-show="item.id == note_selected.id">Edit</a>
         {{item.text}}

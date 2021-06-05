@@ -34,7 +34,8 @@ export function download(body) {
 export function epoch_to_text(secs) {
     let zero = new Date();
     var d = new Date(secs*1000); // - 60000 * zero.getTimezoneOffset());
-    let txt = d.toLocaleDateString('fi');
+    const options = { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric'};
+    let txt = d.toLocaleDateString('fi', options);
     //txt = txt.substr(0,5);
     return txt;
 }
