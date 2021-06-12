@@ -17,7 +17,7 @@ export function build_export(itemlist, taglist, css) {
 export function download(body) {
     let d = new Date();
     let iso = d.toISOString().substr(0,10);
-    let filename = `diary-export-${iso}.txt`;
+    let filename = `tiny-notes-export-${iso}.txt`;
 
     let element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(body));

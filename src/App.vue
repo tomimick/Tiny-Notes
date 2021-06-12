@@ -1,7 +1,7 @@
 <template>
   <header>
   <div class="navi">
-      <span @click="onHome">Diary {{title}}</span>
+      <span @click="onHome">Notes {{title}}</span>
       <input type="text" v-model="search" autocomplete="off"
             placeholder="Search" />
       <span>

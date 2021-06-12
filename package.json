@@ -1,6 +1,6 @@
 {
-  "name": "mydiary",
-  "version": "0.0.0",
+  "name": "TinyNotes",
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
