@@ -65,6 +65,10 @@
       <button @click="onDownload">Export</button>
       Import: <input type="file" name="files[]" @change="onImportFile" />
 
+      <h3>Open source</h3>
+
+      <p>This is an open source hobby project by <a target="_blank" href="https://tomicloud.com">Tomi Mickelsson</a>, sources available at <a target="_blank" href="https://github.com/tomimick/Tiny-Notes">Github</a>.</p>
+
       <hr/>
 
       <button @click="onSettingsCancel">Cancel</button>
@@ -87,9 +91,35 @@ const default_taglist = ["tag1", "tag2", "tag3"];
 const default_css = `body {
     font-size: 15px;
 }
-.tagname {
-    background: #ddd;
+.tag1 {
+    background: #f9ffa8;
 }
+.tag2 {
+    background: #d9f7a1;
+}
+.tag3 {
+    background: #b3faff;
+}
+.item {
+    padding: 5px;
+    border-bottom: 1px dashed #777;
+    max-height: 40px;
+    min-height: 20px;
+}
+.item.open {
+    border: 2px solid #000;
+}
+.taglist span {
+    padding: 8px 6px;
+}
+.taglist span.active {
+    border: 2px solid #000;
+    padding: 6px 6px;
+}
+.editview textarea {
+    font-family: sans-serif;
+}
+/* see more styles in App.vue */
 `;
 
 
@@ -120,7 +150,13 @@ export default {
     },
     async mounted() {
         await open_db();
-        this.reload();
+        await this.reload();
+
+        // add hello notes if is the very first load
+        if (!this.items.length && !get_keyval("first")) {
+            await insert_note("tag1", "Welcome to Tomi's powerful tiny notes app! This is your first note.\r\n\r\nStart authoring notes or extend the source code and host the app yourself. You have the power.");
+            save_keyval("first", "1");
+        }
     },
     computed: {
        title: function() {
@@ -346,6 +382,8 @@ main {
     color: #33f;
     float: right;
     clear: both;
+    padding: 5px 0;
+    font-weight: bold;
 }
 
 .taglist {
@@ -356,6 +394,7 @@ main {
     user-select: none;
     overflow-x: auto;
     white-space: nowrap;
+    cursor: pointer;
 }
 .taglist span {
     padding: 8px 6px;

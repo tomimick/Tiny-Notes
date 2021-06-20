@@ -24,7 +24,6 @@ export async function open_db() {
                 autoIncrement: true,
               });
               store.createIndex('created', 'created');
-              insert_note("tag1", "Welcome to Tomi's notes app! This is your first note.");
               break;
             case 1:
               // 2nd schema...
