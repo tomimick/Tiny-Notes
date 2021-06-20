@@ -23,6 +23,7 @@
         :class="['item', item.tag, {open: item.id == note_selected.id}]"
         @click="onToggle(item)">
          <span><b>{{item.tag}}</b> {{epoch_to_text(item.created)}}</span>
+         <span v-show="item.id == note_selected.id">{{epoch_to_ago_text(item.created)}}</span>
          <a href="#" @click.stop="onEdit(item)"
             v-show="item.id == note_selected.id">Edit</a>
         {{item.text}}
@@ -80,7 +81,7 @@ import ReloadPrompt from './ReloadPrompt.vue'
 import {open_db, insert_note, update_note, query_notes, delete_note,
     get_keyval, get_keyval_list, save_keyval, import_json,
     get_count} from './db.js'
-import {download, build_export, epoch_to_text} from './util.js'
+import {download, build_export, epoch_to_text, epoch_to_ago_text} from './util.js'
 
 const default_taglist = ["tag1", "tag2", "tag3"];
 const default_css = `body {
@@ -129,6 +130,7 @@ export default {
     },
     methods: {
         epoch_to_text,
+        epoch_to_ago_text,
         async reload(skipmode) {
             let t = this;
             t.items = await query_notes(t.tag_selected, t.search);
@@ -338,6 +340,7 @@ main {
     color: #22a;
     float: right;
     font-size: 70%;
+    clear: right;
 }
 .item a {
     color: #33f;

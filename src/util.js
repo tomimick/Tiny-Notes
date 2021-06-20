@@ -40,3 +40,14 @@ export function epoch_to_text(secs) {
     return txt;
 }
 
+export function epoch_to_ago_text(secs) {
+    const now = parseInt(Date.now()/1000);
+    let delta = now-secs;
+    delta = delta/60/60/24;
+
+    if (delta < 180)
+        return `${delta.toFixed(0)} days ago`;
+    else
+        return `${(delta/365).toFixed(1)} years ago`;
+}
+
