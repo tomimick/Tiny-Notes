@@ -150,13 +150,14 @@ export default {
     },
     async mounted() {
         await open_db();
-        await this.reload();
 
         // add hello notes if is the very first load
         if (!this.items.length && !get_keyval("first")) {
             await insert_note("tag1", "Welcome to Tomi's powerful tiny notes app! This is your first note.\r\n\r\nStart authoring notes or extend the source code and host the app yourself. You have the power.");
             save_keyval("first", "1");
         }
+
+        await this.reload();
     },
     computed: {
        title: function() {
