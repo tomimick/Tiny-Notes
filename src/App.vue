@@ -183,6 +183,7 @@ export default {
             let t = this;
             t.search = '';
             t.tag_selected = '';
+            t.clearSelection();
             t.reload();
         },
         onAdd() {
@@ -217,6 +218,8 @@ export default {
             let text = t.body;
             let tag = t.tag_selected || '';
             if (t.note_selected.id) {
+                t.note_selected.text = text;
+                t.note_selected.tag = tag;
                 await update_note(t.note_selected.id, tag, text, t.delta);
             } else {
                 await insert_note(tag, text, t.delta);
