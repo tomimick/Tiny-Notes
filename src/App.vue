@@ -172,6 +172,8 @@ export default {
             let t = this;
             t.items = await query_notes(t.tag_selected, t.search);
 
+            window.scroll(0,0);
+
             // read config
             t.tags = get_keyval_list("taglist", default_taglist);
             document.getElementById("customstyle").innerHTML = get_keyval("css", default_css);
