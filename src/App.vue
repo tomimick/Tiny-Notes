@@ -60,10 +60,14 @@
 
       Add new tag style <input type="color" @change="onAddColor" />
 
-      <h3>Data transfer</h3>
-      <p>There are {{notecount}} notes in the database.</p>
+      <h3>Data export</h3>
+      <p>There are {{notecount}} notes in the database. Last export was: {{export_time}}.</p>
       <button @click="onDownload">Export</button>
-      Import: <input type="file" name="files[]" @change="onImportFile" />
+
+      <h3>Data import</h3>
+
+      <p>Import: <input type="file" name="files[]" @change="onImportFile" /></p>
+      <p>(Existing notes are not deleted.)</p>
 
       <h3>Open source</h3>
 
@@ -141,6 +145,7 @@ export default {
             edit_taglist:'',
             edit_style:'',
             notecount:0,
+            export_time:'',
         }
     },
     watch: {
@@ -249,6 +254,8 @@ export default {
             let txt = build_export(items, t.tags, get_keyval("css"));
             download(txt);
 
+            const d = new Date();
+            save_keyval("export_time", d.toLocaleString());
         },
         clearSelection() {
             this.note_selected = {id:0,text:''};
@@ -261,6 +268,7 @@ export default {
                 // opening settings, populate page
                 t.edit_taglist = t.tags.join(", ");
                 t.edit_style = get_keyval("css", default_css);
+                t.export_time = get_keyval("export_time", "never");
                 t.notecount = await get_count();
             }
         },
