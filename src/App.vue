@@ -30,7 +30,7 @@
       </div>
   </div>
 
-  <div class="editview" v-if="mode=='edit'">
+  <div class="editview" :class="tag_selected" v-if="mode=='edit'">
     <textarea ref="textbody" v-model="body"></textarea>
 
     <div class="buttonrow">
@@ -372,7 +372,7 @@ header a {
 }
 
 main {
-    padding-top: 85px;
+    padding-top: 80px;
 }
 
 .item {
@@ -420,16 +420,21 @@ main {
 }
 
 .editview {
-    margin: 2%;
+    padding: 2%;
 }
 
 .editview textarea {
     width: 100%;
     height: 300px;
+    height: calc(100vh - 147px);
     padding: 5px;
     font-size: 110%;
     border: 0;
 }
+.editview textarea:focus {
+    outline: 1px dashed #555;
+}
+
 button {
     margin-right: 10px;
     padding: 6px 12px;
@@ -452,6 +457,7 @@ button.del {
 .buttonrow {
 	display: flex;
     justify-content: space-between;
+    margin: 7px 0;
 }
 
 .settingsview {
