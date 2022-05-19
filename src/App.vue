@@ -3,7 +3,7 @@
   <div class="navi">
       <span @click="onHome">Notes {{title}}</span>
       <input type="text" v-model="search" autocomplete="off"
-            placeholder="Search" />
+            placeholder="Search" @keypress.enter="reload" />
       <span>
           <a href="#" @click="onSettingsOpen">&#9881;</a>
           <a href="#" @click="onAdd">New</a>
@@ -150,11 +150,15 @@ export default {
     },
     watch: {
         search: function (val) {
-            this.reload();
+            // search without enter if amount of notes less
+            if (this.notecount < 2000)
+                this.reload();
         },
     },
     async mounted() {
         await open_db();
+
+        this.notecount = await get_count();
 
         // add hello notes if is the very first load
         if (!this.items.length && !get_keyval("first")) {
