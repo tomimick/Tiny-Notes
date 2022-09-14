@@ -4,6 +4,7 @@
       <span @click="onHome">Notes {{title}}</span>
       <input type="text" v-model="search" autocomplete="off"
             placeholder="Search" @keypress.enter="reload" />
+      <a href="#" @click="onYear">{{year_btn}}</a>
       <span>
           <a href="#" @click="onSettingsOpen">&#9881;</a>
           <a href="#" @click="onAdd">New</a>
@@ -146,6 +147,7 @@ export default {
             edit_style:'',
             notecount:0,
             export_time:'',
+            year:'',
         }
     },
     watch: {
@@ -173,13 +175,18 @@ export default {
             const count = this.items.length;
             return `${count}`;
        },
+       year_btn: function() {
+            if (this.year)
+                return `${this.year}`;
+            return "Year";
+       },
     },
     methods: {
         epoch_to_text,
         epoch_to_ago_text,
         async reload(skipmode) {
             let t = this;
-            t.items = await query_notes(t.tag_selected, t.search);
+            t.items = await query_notes(t.tag_selected, t.search, 200, t.year);
 
             window.scroll(0,0);
 
@@ -325,6 +332,15 @@ export default {
                     t.onHome();
               };
               reader.readAsText(file);
+        },
+        onYear() {
+            let t = this;
+            t.year = prompt("Year?");
+            if (t.year == 't') {
+                // current year shortcut
+                t.year = new Date().getFullYear();
+            }
+            t.reload();
         },
     }
 }

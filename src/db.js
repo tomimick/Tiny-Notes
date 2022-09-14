@@ -36,7 +36,7 @@ export async function open_db() {
     return db;
 }
 
-export async function query_notes(tag, search, count) {
+export async function query_notes(tag, search, count, year) {
 
     if (search)
         search = search.toLowerCase();
@@ -46,6 +46,14 @@ export async function query_notes(tag, search, count) {
     const MAX = count || 200;
     let range = null;
     let direction = "prev";
+
+    if (year) {
+        // year specified, set lower, upper limits
+        year = parseInt(year);
+        const t1 = new Date(year, 0, 1);
+        const t2 = new Date(year+1, 0, 1);
+        range = IDBKeyRange.bound(t1.getTime()/1000, t2.getTime()/1000);
+    }
 
     /*let cursor = await db_.transaction(STORE_NAME).store.openCursor(
         range, direction);*/
