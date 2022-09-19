@@ -339,6 +339,8 @@ export default {
             if (t.year == 't') {
                 // current year shortcut
                 t.year = new Date().getFullYear();
+            } else if (parseInt(t.year) < 100) {
+                t.year = 2000 + parseInt(t.year);
             }
             t.reload();
         },
