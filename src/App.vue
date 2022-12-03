@@ -147,7 +147,7 @@ export default {
             edit_style:'',
             notecount:0,
             export_time:'',
-            year:'',
+            year:-1,
         }
     },
     watch: {
@@ -176,9 +176,12 @@ export default {
             return `${count}`;
        },
        year_btn: function() {
-            if (this.year)
-                return `${this.year}`;
-            return "Year";
+            if (!this.year)
+                return "Year";
+            if (this.year < 10)
+                return `${Math.abs(this.year)}Year`;
+
+            return `${this.year}`;
        },
     },
     methods: {
@@ -335,12 +338,19 @@ export default {
         },
         onYear() {
             let t = this;
-            t.year = prompt("Year?");
-            if (t.year == 't') {
-                // current year shortcut
-                t.year = new Date().getFullYear();
-            } else if (parseInt(t.year) < 100) {
-                t.year = 2000 + parseInt(t.year);
+            let y = prompt("Year?");
+            if (!y)
+                return;
+
+            y = Math.abs(parseInt(y));
+
+            if (y < 10) {
+                // past N years
+                t.year = -y;
+            } else if (y < 100) {
+                t.year = 2000 + y;
+            } else {
+                t.year = y;
             }
             t.reload();
         },

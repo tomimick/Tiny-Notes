@@ -50,8 +50,18 @@ export async function query_notes(tag, search, count, year) {
     if (year) {
         // year specified, set lower, upper limits
         year = parseInt(year);
-        const t1 = new Date(year, 0, 1);
-        const t2 = new Date(year+1, 0, 1);
+
+        let t1, t2;
+        if (year < 0) {
+            // relative years from now
+            t1 = new Date();
+            t2 = new Date();
+            t1.setFullYear(t1.getFullYear()+year);
+        } else {
+            // absolute year
+            t1 = new Date(year, 0, 1);
+            t2 = new Date(year+1, 0, 1);
+        }
         range = IDBKeyRange.bound(t1.getTime()/1000, t2.getTime()/1000);
     }
 
