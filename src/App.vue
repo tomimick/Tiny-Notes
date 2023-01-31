@@ -158,6 +158,12 @@ export default {
         },
     },
     async mounted() {
+
+        if ("virtualKeyboard" in navigator) {
+            // enable css variable keyboard-inset-height
+            navigator.virtualKeyboard.overlaysContent = true;
+        }
+
         await open_db();
 
         this.notecount = await get_count();
@@ -457,8 +463,10 @@ main {
 
 .editview textarea {
     width: 100%;
+    /* progressive height */
     height: 300px;
     height: calc(100vh - 147px);
+    height: calc(100vh - 147px - env(keyboard-inset-height));
     padding: 5px;
     font-size: 110%;
     border: 0;
